@@ -87,6 +87,86 @@ export type Database = {
           },
         ]
       }
+      clients: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          professional_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          professional_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          professional_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plans: {
+        Row: {
+          created_at: string
+          features: Json | null
+          id: string
+          is_active: boolean
+          max_appointments: number
+          max_professionals: number
+          name: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          features?: Json | null
+          id?: string
+          is_active?: boolean
+          max_appointments?: number
+          max_professionals?: number
+          name: string
+          price?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          features?: Json | null
+          id?: string
+          is_active?: boolean
+          max_appointments?: number
+          max_professionals?: number
+          name?: string
+          price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -179,6 +259,116 @@ export type Database = {
           },
         ]
       }
+      settings: {
+        Row: {
+          cancellation_policy: string | null
+          created_at: string
+          id: string
+          max_advance_days: number
+          min_advance_hours: number
+          notification_email: boolean
+          notification_sms: boolean
+          public_page_description: string | null
+          public_page_theme: string | null
+          public_page_title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancellation_policy?: string | null
+          created_at?: string
+          id?: string
+          max_advance_days?: number
+          min_advance_hours?: number
+          notification_email?: boolean
+          notification_sms?: boolean
+          public_page_description?: string | null
+          public_page_theme?: string | null
+          public_page_title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancellation_policy?: string | null
+          created_at?: string
+          id?: string
+          max_advance_days?: number
+          min_advance_hours?: number
+          notification_email?: boolean
+          notification_sms?: boolean
+          public_page_description?: string | null
+          public_page_theme?: string | null
+          public_page_title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          appointments_used: number
+          created_at: string
+          end_date: string | null
+          id: string
+          plan_id: string | null
+          start_date: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          appointments_used?: number
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          plan_id?: string | null
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          appointments_used?: number
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          plan_id?: string | null
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       working_hours: {
         Row: {
           created_at: string
@@ -222,10 +412,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_subscription_valid: { Args: { _user_id: string }; Returns: boolean }
+      get_user_profile_id: { Args: { _user_id: string }; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "professional" | "client"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -352,6 +550,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "professional", "client"],
+    },
   },
 } as const
