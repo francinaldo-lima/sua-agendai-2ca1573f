@@ -11,6 +11,13 @@ import Cadastro from "./pages/Cadastro";
 import Dashboard from "./pages/Dashboard";
 import Agendar from "./pages/Agendar";
 import NotFound from "./pages/NotFound";
+import Agenda from "./pages/dashboard/Agenda";
+import Clientes from "./pages/dashboard/Clientes";
+import Servicos from "./pages/dashboard/Servicos";
+import Horarios from "./pages/dashboard/Horarios";
+import Relatorios from "./pages/dashboard/Relatorios";
+import Assinatura from "./pages/dashboard/Assinatura";
+import Configuracoes from "./pages/dashboard/Configuracoes";
 
 const queryClient = new QueryClient();
 
@@ -25,16 +32,15 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/cadastro" element={<Cadastro />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/dashboard/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
+            <Route path="/dashboard/clientes" element={<ProtectedRoute><Clientes /></ProtectedRoute>} />
+            <Route path="/dashboard/servicos" element={<ProtectedRoute><Servicos /></ProtectedRoute>} />
+            <Route path="/dashboard/horarios" element={<ProtectedRoute><Horarios /></ProtectedRoute>} />
+            <Route path="/dashboard/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
+            <Route path="/dashboard/assinatura" element={<ProtectedRoute><Assinatura /></ProtectedRoute>} />
+            <Route path="/dashboard/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
             <Route path="/agendar/:professionalId" element={<Agendar />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
