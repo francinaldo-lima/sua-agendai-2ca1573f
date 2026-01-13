@@ -141,6 +141,7 @@ export type Database = {
           max_professionals: number
           name: string
           price: number
+          stripe_price_id: string | null
           updated_at: string
         }
         Insert: {
@@ -152,6 +153,7 @@ export type Database = {
           max_professionals?: number
           name: string
           price?: number
+          stripe_price_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -163,6 +165,7 @@ export type Database = {
           max_professionals?: number
           name?: string
           price?: number
+          stripe_price_id?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -178,6 +181,8 @@ export type Database = {
           id: string
           phone: string | null
           role: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
           subscription_plan: string
           subscription_status: string | null
           updated_at: string
@@ -193,6 +198,8 @@ export type Database = {
           id?: string
           phone?: string | null
           role?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           subscription_plan?: string
           subscription_status?: string | null
           updated_at?: string
@@ -208,6 +215,8 @@ export type Database = {
           id?: string
           phone?: string | null
           role?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           subscription_plan?: string
           subscription_status?: string | null
           updated_at?: string

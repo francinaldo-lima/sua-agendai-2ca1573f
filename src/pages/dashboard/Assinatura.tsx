@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Crown, Zap, Building2 } from 'lucide-react';
+import { Check, Crown, Zap, Building2, Loader2, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useSearchParams } from 'react-router-dom';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,6 +17,7 @@ interface Plan {
   max_professionals: number;
   price: number;
   features: string[];
+  stripe_price_id: string | null;
 }
 
 interface Subscription {
@@ -27,6 +29,12 @@ interface Subscription {
   plan: Plan;
 }
 
+interface Profile {
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  subscription_status: string | null;
+}
+
 const PLAN_ICONS: Record<string, typeof Crown> = {
   Gratuito: Zap,
   Básico: Crown,
@@ -36,13 +44,38 @@ const PLAN_ICONS: Record<string, typeof Crown> = {
 
 const Assinatura = () => {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [processingPlanId, setProcessingPlanId] = useState<string | null>(null);
+  const [openingPortal, setOpeningPortal] = useState(false);
+
+  useEffect(() => {
+    // Handle success/cancel from Stripe
+    if (searchParams.get('success') === 'true') {
+      toast.success('Assinatura realizada com sucesso! 🎉');
+    }
+    if (searchParams.get('canceled') === 'true') {
+      toast.info('Checkout cancelado.');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchData = async () => {
       if (!user?.id) return;
+
+      // Fetch profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('stripe_customer_id, stripe_subscription_id, subscription_status')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileData) {
+        setProfile(profileData);
+      }
 
       // Fetch all plans
       const { data: plansData } = await supabase
@@ -78,21 +111,82 @@ const Assinatura = () => {
               ? subData.plan.features.map(String) 
               : []
           }
-        } as any);
+        } as Subscription);
       }
 
       setLoading(false);
     };
 
     fetchData();
-  }, [user?.id]);
+  }, [user?.id, searchParams]);
 
-  const handleUpgrade = async (planId: string) => {
-    toast.info('Integração com pagamento em desenvolvimento. Em breve você poderá fazer upgrade!');
-    // TODO: Integrate with Stripe
+  const handleUpgrade = async (plan: Plan) => {
+    if (!plan.stripe_price_id) {
+      toast.error('Este plano não está disponível para assinatura.');
+      return;
+    }
+
+    setProcessingPlanId(plan.id);
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      const response = await supabase.functions.invoke('create-checkout-session', {
+        body: { 
+          priceId: plan.stripe_price_id,
+          planId: plan.id
+        },
+        headers: {
+          Authorization: `Bearer ${sessionData.session?.access_token}`,
+        },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Erro ao criar sessão de checkout');
+      }
+
+      const { url } = response.data;
+      if (url) {
+        window.location.href = url;
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      toast.error('Erro ao iniciar checkout. Tente novamente.');
+    } finally {
+      setProcessingPlanId(null);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    setOpeningPortal(true);
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      const response = await supabase.functions.invoke('create-portal-session', {
+        headers: {
+          Authorization: `Bearer ${sessionData.session?.access_token}`,
+        },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Erro ao abrir portal');
+      }
+
+      const { url } = response.data;
+      if (url) {
+        window.location.href = url;
+      }
+    } catch (error) {
+      console.error('Error opening portal:', error);
+      toast.error('Erro ao abrir portal de gerenciamento. Tente novamente.');
+    } finally {
+      setOpeningPortal(false);
+    }
   };
 
   const currentPlanId = subscription?.plan?.id;
+  const hasActiveStripeSubscription = profile?.stripe_subscription_id && profile?.subscription_status === 'active';
 
   return (
     <DashboardLayout>
@@ -115,8 +209,8 @@ const Assinatura = () => {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-muted-foreground">
-          Carregando...
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : (
         <>
@@ -143,6 +237,22 @@ const Assinatura = () => {
                     R$ {subscription.plan.price.toFixed(2)}
                     <span className="text-sm font-normal text-muted-foreground">/mês</span>
                   </p>
+                  {hasActiveStripeSubscription && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-2"
+                      onClick={handleManageSubscription}
+                      disabled={openingPortal}
+                    >
+                      {openingPortal ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                      )}
+                      Gerenciar Assinatura
+                    </Button>
+                  )}
                 </div>
               </div>
 
@@ -178,6 +288,9 @@ const Assinatura = () => {
               const Icon = PLAN_ICONS[plan.name] || Crown;
               const isCurrent = plan.id === currentPlanId;
               const isPopular = plan.name === 'Profissional';
+              const isProcessing = processingPlanId === plan.id;
+              const isFree = plan.price === 0;
+              const isDowngrade = subscription && plan.price < subscription.plan.price;
 
               return (
                 <motion.div
@@ -208,9 +321,9 @@ const Assinatura = () => {
 
                   <div className="mb-4">
                     <span className="text-3xl font-bold text-foreground">
-                      R$ {plan.price.toFixed(2)}
+                      {isFree ? 'Grátis' : `R$ ${plan.price.toFixed(2)}`}
                     </span>
-                    <span className="text-muted-foreground">/mês</span>
+                    {!isFree && <span className="text-muted-foreground">/mês</span>}
                   </div>
 
                   <ul className="space-y-2 mb-6">
@@ -225,10 +338,23 @@ const Assinatura = () => {
                   <Button
                     variant={isCurrent ? 'secondary' : isPopular ? 'default' : 'outline'}
                     className="w-full"
-                    disabled={isCurrent}
-                    onClick={() => handleUpgrade(plan.id)}
+                    disabled={isCurrent || isFree || isProcessing || isDowngrade}
+                    onClick={() => handleUpgrade(plan)}
                   >
-                    {isCurrent ? 'Plano Atual' : 'Fazer Upgrade'}
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Processando...
+                      </>
+                    ) : isCurrent ? (
+                      'Plano Atual'
+                    ) : isFree ? (
+                      'Plano Gratuito'
+                    ) : isDowngrade ? (
+                      'Gerenciar Plano'
+                    ) : (
+                      'Fazer Upgrade'
+                    )}
                   </Button>
                 </motion.div>
               );
@@ -247,7 +373,7 @@ const Assinatura = () => {
               <div>
                 <h4 className="font-medium text-foreground">Posso trocar de plano a qualquer momento?</h4>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Sim! Você pode fazer upgrade ou downgrade a qualquer momento. O valor será ajustado proporcionalmente.
+                  Sim! Você pode fazer upgrade a qualquer momento. Para downgrade, acesse o portal de gerenciamento.
                 </p>
               </div>
               <div>
@@ -259,7 +385,7 @@ const Assinatura = () => {
               <div>
                 <h4 className="font-medium text-foreground">Como faço para cancelar?</h4>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Você pode cancelar a qualquer momento nas configurações. Seu acesso permanece até o fim do período pago.
+                  Clique em "Gerenciar Assinatura" para acessar o portal onde você pode cancelar ou alterar seu plano. Seu acesso permanece até o fim do período pago.
                 </p>
               </div>
             </div>
