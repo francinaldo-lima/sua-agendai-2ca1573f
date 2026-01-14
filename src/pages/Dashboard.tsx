@@ -8,6 +8,9 @@ import { StatsCard } from '@/components/dashboard/StatsCard';
 import { MiniCalendar } from '@/components/dashboard/MiniCalendar';
 import { AppointmentsList } from '@/components/dashboard/AppointmentsList';
 import { RevenueChart } from '@/components/dashboard/RevenueChart';
+import { NewAppointmentDialog } from '@/components/dashboard/NewAppointmentDialog';
+import { NewServiceDialog } from '@/components/dashboard/NewServiceDialog';
+import { BlockTimeDialog } from '@/components/dashboard/BlockTimeDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -32,39 +35,53 @@ const Dashboard = () => {
     monthRevenue: 0,
   });
 
+  const fetchData = async () => {
+    if (!profile?.id) return;
+
+    // Fetch today's appointments
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const { data: appointmentsData } = await supabase
+      .from('appointments')
+      .select(`
+        *,
+        services:service_id (name)
+      `)
+      .eq('professional_id', profile.id)
+      .eq('appointment_date', today)
+      .order('start_time');
+
+    if (appointmentsData) {
+      setAppointments(
+        appointmentsData.map((a) => ({
+          id: a.id,
+          client_name: a.client_name,
+          service_name: a.services?.name || 'Serviço',
+          start_time: a.start_time?.slice(0, 5) || '',
+          end_time: a.end_time?.slice(0, 5) || '',
+          status: a.status,
+        }))
+      );
+      setStats((prev) => ({ ...prev, todayAppointments: appointmentsData.length }));
+    }
+
+    // Fetch total clients
+    const { count: clientsCount } = await supabase
+      .from('clients')
+      .select('*', { count: 'exact', head: true })
+      .eq('professional_id', profile.id);
+
+    if (clientsCount !== null) {
+      setStats((prev) => ({ ...prev, totalClients: clientsCount }));
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      if (!profile?.id) return;
-
-      // Fetch today's appointments
-      const today = format(new Date(), 'yyyy-MM-dd');
-      const { data: appointmentsData } = await supabase
-        .from('appointments')
-        .select(`
-          *,
-          services:service_id (name)
-        `)
-        .eq('professional_id', profile.id)
-        .eq('appointment_date', today)
-        .order('start_time');
-
-      if (appointmentsData) {
-        setAppointments(
-          appointmentsData.map((a) => ({
-            id: a.id,
-            client_name: a.client_name,
-            service_name: a.services?.name || 'Serviço',
-            start_time: a.start_time?.slice(0, 5) || '',
-            end_time: a.end_time?.slice(0, 5) || '',
-            status: a.status,
-          }))
-        );
-        setStats((prev) => ({ ...prev, todayAppointments: appointmentsData.length }));
-      }
-    };
-
     fetchData();
   }, [profile?.id]);
+
+  const handleRefresh = () => {
+    fetchData();
+  };
 
   return (
     <DashboardLayout>
@@ -99,7 +116,7 @@ const Dashboard = () => {
         />
         <StatsCard
           title="Clientes Ativos"
-          value={stats.totalClients || 24}
+          value={stats.totalClients}
           change="+3 esta semana"
           changeType="positive"
           icon={Users}
@@ -148,15 +165,36 @@ const Dashboard = () => {
           >
             <h3 className="font-semibold text-foreground mb-4">Ações Rápidas</h3>
             <div className="space-y-2">
-              <button className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
-                + Novo Agendamento
-              </button>
-              <button className="w-full rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors">
-                + Novo Serviço
-              </button>
-              <button className="w-full rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors">
-                Bloquear Horário
-              </button>
+              {profile?.id && (
+                <>
+                  <NewAppointmentDialog
+                    professionalId={profile.id}
+                    onSuccess={handleRefresh}
+                    trigger={
+                      <button className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
+                        + Novo Agendamento
+                      </button>
+                    }
+                  />
+                  <NewServiceDialog
+                    professionalId={profile.id}
+                    trigger={
+                      <button className="w-full rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors">
+                        + Novo Serviço
+                      </button>
+                    }
+                  />
+                  <BlockTimeDialog
+                    professionalId={profile.id}
+                    onSuccess={handleRefresh}
+                    trigger={
+                      <button className="w-full rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted transition-colors">
+                        Bloquear Horário
+                      </button>
+                    }
+                  />
+                </>
+              )}
             </div>
           </motion.div>
         </div>

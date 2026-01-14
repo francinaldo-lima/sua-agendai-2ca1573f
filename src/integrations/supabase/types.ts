@@ -87,6 +87,68 @@ export type Database = {
           },
         ]
       }
+      business_profile: {
+        Row: {
+          address: string | null
+          business_name: string | null
+          created_at: string
+          description: string | null
+          facebook_link: string | null
+          google_maps_link: string | null
+          id: string
+          instagram_link: string | null
+          logo_url: string | null
+          opening_hours: Json | null
+          phone: string | null
+          professional_id: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          business_name?: string | null
+          created_at?: string
+          description?: string | null
+          facebook_link?: string | null
+          google_maps_link?: string | null
+          id?: string
+          instagram_link?: string | null
+          logo_url?: string | null
+          opening_hours?: Json | null
+          phone?: string | null
+          professional_id?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          business_name?: string | null
+          created_at?: string
+          description?: string | null
+          facebook_link?: string | null
+          google_maps_link?: string | null
+          id?: string
+          instagram_link?: string | null
+          logo_url?: string | null
+          opening_hours?: Json | null
+          phone?: string | null
+          professional_id?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_profile_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           created_at: string
@@ -353,6 +415,47 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_blocks: {
+        Row: {
+          block_date: string
+          created_at: string
+          end_time: string
+          id: string
+          is_all_day: boolean | null
+          professional_id: string
+          reason: string | null
+          start_time: string
+        }
+        Insert: {
+          block_date: string
+          created_at?: string
+          end_time: string
+          id?: string
+          is_all_day?: boolean | null
+          professional_id: string
+          reason?: string | null
+          start_time: string
+        }
+        Update: {
+          block_date?: string
+          created_at?: string
+          end_time?: string
+          id?: string
+          is_all_day?: boolean | null
+          professional_id?: string
+          reason?: string | null
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_blocks_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

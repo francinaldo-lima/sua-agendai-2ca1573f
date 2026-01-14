@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Save, User, Bell, Globe, Shield } from 'lucide-react';
+import { Save, User, Bell, Globe, Shield, Building, Upload } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +30,18 @@ interface Settings {
   notification_sms: boolean;
 }
 
+interface BusinessProfile {
+  logo_url: string;
+  business_name: string;
+  description: string;
+  address: string;
+  google_maps_link: string;
+  phone: string;
+  instagram_link: string;
+  website: string;
+  opening_hours: Record<string, string>;
+}
+
 const Configuracoes = () => {
   const { profile, user, refreshProfile } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -51,6 +63,18 @@ const Configuracoes = () => {
     public_page_theme: 'default',
     notification_email: true,
     notification_sms: false,
+  });
+
+  const [businessProfile, setBusinessProfile] = useState<BusinessProfile>({
+    logo_url: '',
+    business_name: '',
+    description: '',
+    address: '',
+    google_maps_link: '',
+    phone: '',
+    instagram_link: '',
+    website: '',
+    opening_hours: {},
   });
 
   useEffect(() => {
@@ -81,6 +105,27 @@ const Configuracoes = () => {
           public_page_theme: settingsData.public_page_theme || 'default',
           notification_email: settingsData.notification_email,
           notification_sms: settingsData.notification_sms,
+        });
+      }
+
+      // Fetch business profile
+      const { data: businessData } = await supabase
+        .from('business_profile')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (businessData) {
+        setBusinessProfile({
+          logo_url: businessData.logo_url || '',
+          business_name: businessData.business_name || '',
+          description: businessData.description || '',
+          address: businessData.address || '',
+          google_maps_link: businessData.google_maps_link || '',
+          phone: businessData.phone || '',
+          instagram_link: businessData.instagram_link || '',
+          website: businessData.website || '',
+          opening_hours: (businessData.opening_hours as Record<string, string>) || {},
         });
       }
 
@@ -132,6 +177,27 @@ const Configuracoes = () => {
     setSaving(false);
   };
 
+  const saveBusinessProfile = async () => {
+    if (!user?.id || !profile?.id) return;
+    setSaving(true);
+
+    const { error } = await supabase
+      .from('business_profile')
+      .upsert({
+        user_id: user.id,
+        professional_id: profile.id,
+        ...businessProfile,
+      }, { onConflict: 'user_id' });
+
+    if (error) {
+      toast.error('Erro ao salvar perfil do negócio');
+      console.error(error);
+    } else {
+      toast.success('Perfil do negócio salvo!');
+    }
+    setSaving(false);
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -163,10 +229,14 @@ const Configuracoes = () => {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
           <TabsTrigger value="profile" className="gap-2">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">Perfil</span>
+          </TabsTrigger>
+          <TabsTrigger value="business" className="gap-2">
+            <Building className="h-4 w-4" />
+            <span className="hidden sm:inline">Negócio</span>
           </TabsTrigger>
           <TabsTrigger value="scheduling" className="gap-2">
             <Shield className="h-4 w-4" />
@@ -174,7 +244,7 @@ const Configuracoes = () => {
           </TabsTrigger>
           <TabsTrigger value="public" className="gap-2">
             <Globe className="h-4 w-4" />
-            <span className="hidden sm:inline">Página Pública</span>
+            <span className="hidden sm:inline">Página</span>
           </TabsTrigger>
           <TabsTrigger value="notifications" className="gap-2">
             <Bell className="h-4 w-4" />
@@ -196,9 +266,7 @@ const Configuracoes = () => {
                 <Input
                   id="full_name"
                   value={profileData.full_name}
-                  onChange={(e) =>
-                    setProfileData({ ...profileData, full_name: e.target.value })
-                  }
+                  onChange={(e) => setProfileData({ ...profileData, full_name: e.target.value })}
                 />
               </div>
               <div>
@@ -206,9 +274,7 @@ const Configuracoes = () => {
                 <Input
                   id="company_name"
                   value={profileData.company_name}
-                  onChange={(e) =>
-                    setProfileData({ ...profileData, company_name: e.target.value })
-                  }
+                  onChange={(e) => setProfileData({ ...profileData, company_name: e.target.value })}
                 />
               </div>
               <div>
@@ -217,9 +283,7 @@ const Configuracoes = () => {
                   id="email"
                   type="email"
                   value={profileData.email}
-                  onChange={(e) =>
-                    setProfileData({ ...profileData, email: e.target.value })
-                  }
+                  onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
                 />
               </div>
               <div>
@@ -227,9 +291,7 @@ const Configuracoes = () => {
                 <Input
                   id="phone"
                   value={profileData.phone}
-                  onChange={(e) =>
-                    setProfileData({ ...profileData, phone: e.target.value })
-                  }
+                  onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
                 />
               </div>
             </div>
@@ -237,6 +299,107 @@ const Configuracoes = () => {
               <Button onClick={saveProfile} disabled={saving}>
                 <Save className="h-4 w-4 mr-2" />
                 Salvar Perfil
+              </Button>
+            </div>
+          </motion.div>
+        </TabsContent>
+
+        {/* Business Profile Tab */}
+        <TabsContent value="business">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-xl border border-border bg-card p-6"
+          >
+            <h3 className="font-semibold text-foreground mb-6">Perfil do Negócio</h3>
+            <div className="space-y-6">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label htmlFor="business_name">Nome do Negócio</Label>
+                  <Input
+                    id="business_name"
+                    value={businessProfile.business_name}
+                    onChange={(e) => setBusinessProfile({ ...businessProfile, business_name: e.target.value })}
+                    placeholder="Nome da sua empresa"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="logo_url">URL do Logo</Label>
+                  <Input
+                    id="logo_url"
+                    value={businessProfile.logo_url}
+                    onChange={(e) => setBusinessProfile({ ...businessProfile, logo_url: e.target.value })}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="description">Descrição</Label>
+                <Textarea
+                  id="description"
+                  value={businessProfile.description}
+                  onChange={(e) => setBusinessProfile({ ...businessProfile, description: e.target.value })}
+                  placeholder="Descreva seu negócio..."
+                  rows={3}
+                />
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label htmlFor="address">Endereço</Label>
+                  <Input
+                    id="address"
+                    value={businessProfile.address}
+                    onChange={(e) => setBusinessProfile({ ...businessProfile, address: e.target.value })}
+                    placeholder="Rua, número, cidade"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="b_phone">Telefone</Label>
+                  <Input
+                    id="b_phone"
+                    value={businessProfile.phone}
+                    onChange={(e) => setBusinessProfile({ ...businessProfile, phone: e.target.value })}
+                    placeholder="(00) 00000-0000"
+                  />
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label htmlFor="instagram">Instagram</Label>
+                  <Input
+                    id="instagram"
+                    value={businessProfile.instagram_link}
+                    onChange={(e) => setBusinessProfile({ ...businessProfile, instagram_link: e.target.value })}
+                    placeholder="@seu_perfil"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="website">Website</Label>
+                  <Input
+                    id="website"
+                    value={businessProfile.website}
+                    onChange={(e) => setBusinessProfile({ ...businessProfile, website: e.target.value })}
+                    placeholder="www.seusite.com"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="google_maps">Link do Google Maps (embed)</Label>
+                <Input
+                  id="google_maps"
+                  value={businessProfile.google_maps_link}
+                  onChange={(e) => setBusinessProfile({ ...businessProfile, google_maps_link: e.target.value })}
+                  placeholder="https://www.google.com/maps/embed?..."
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Cole o link de incorporação do Google Maps
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <Button onClick={saveBusinessProfile} disabled={saving}>
+                <Save className="h-4 w-4 mr-2" />
+                Salvar Perfil do Negócio
               </Button>
             </div>
           </motion.div>
@@ -259,13 +422,8 @@ const Configuracoes = () => {
                     type="number"
                     min="1"
                     value={settings.min_advance_hours}
-                    onChange={(e) =>
-                      setSettings({ ...settings, min_advance_hours: parseInt(e.target.value) || 2 })
-                    }
+                    onChange={(e) => setSettings({ ...settings, min_advance_hours: parseInt(e.target.value) || 2 })}
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Tempo mínimo antes do horário para permitir agendamento
-                  </p>
                 </div>
                 <div>
                   <Label htmlFor="max_advance">Antecedência Máxima (dias)</Label>
@@ -275,13 +433,8 @@ const Configuracoes = () => {
                     min="1"
                     max="365"
                     value={settings.max_advance_days}
-                    onChange={(e) =>
-                      setSettings({ ...settings, max_advance_days: parseInt(e.target.value) || 30 })
-                    }
+                    onChange={(e) => setSettings({ ...settings, max_advance_days: parseInt(e.target.value) || 30 })}
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Quantos dias no futuro podem ser agendados
-                  </p>
                 </div>
               </div>
               <div>
@@ -289,9 +442,7 @@ const Configuracoes = () => {
                 <Textarea
                   id="cancellation_policy"
                   value={settings.cancellation_policy}
-                  onChange={(e) =>
-                    setSettings({ ...settings, cancellation_policy: e.target.value })
-                  }
+                  onChange={(e) => setSettings({ ...settings, cancellation_policy: e.target.value })}
                   rows={4}
                   placeholder="Descreva sua política de cancelamento..."
                 />
@@ -300,7 +451,7 @@ const Configuracoes = () => {
             <div className="mt-6 flex justify-end">
               <Button onClick={saveSettings} disabled={saving}>
                 <Save className="h-4 w-4 mr-2" />
-                Salvar Configurações
+                Salvar
               </Button>
             </div>
           </motion.div>
@@ -313,16 +464,14 @@ const Configuracoes = () => {
             animate={{ opacity: 1, y: 0 }}
             className="rounded-xl border border-border bg-card p-6"
           >
-            <h3 className="font-semibold text-foreground mb-6">Página Pública de Agendamento</h3>
+            <h3 className="font-semibold text-foreground mb-6">Página Pública</h3>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="public_title">Título da Página</Label>
+                <Label htmlFor="public_title">Título</Label>
                 <Input
                   id="public_title"
                   value={settings.public_page_title}
-                  onChange={(e) =>
-                    setSettings({ ...settings, public_page_title: e.target.value })
-                  }
+                  onChange={(e) => setSettings({ ...settings, public_page_title: e.target.value })}
                   placeholder="Agende seu horário"
                 />
               </div>
@@ -331,36 +480,13 @@ const Configuracoes = () => {
                 <Textarea
                   id="public_description"
                   value={settings.public_page_description}
-                  onChange={(e) =>
-                    setSettings({ ...settings, public_page_description: e.target.value })
-                  }
+                  onChange={(e) => setSettings({ ...settings, public_page_description: e.target.value })}
                   rows={3}
-                  placeholder="Escolha o melhor horário para você..."
                 />
               </div>
-              <div>
-                <Label htmlFor="theme">Tema</Label>
-                <Select
-                  value={settings.public_page_theme}
-                  onValueChange={(value) =>
-                    setSettings({ ...settings, public_page_theme: value })
-                  }
-                >
-                  <SelectTrigger id="theme">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="default">Padrão</SelectItem>
-                    <SelectItem value="dark">Escuro</SelectItem>
-                    <SelectItem value="light">Claro</SelectItem>
-                    <SelectItem value="minimal">Minimalista</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
               {profile?.id && (
                 <div className="p-4 rounded-lg bg-muted">
-                  <p className="text-sm text-muted-foreground mb-2">Link da sua página pública:</p>
+                  <p className="text-sm text-muted-foreground mb-2">Link da sua página:</p>
                   <code className="text-sm text-primary break-all">
                     {window.location.origin}/agendar/{profile.id}
                   </code>
@@ -370,7 +496,7 @@ const Configuracoes = () => {
             <div className="mt-6 flex justify-end">
               <Button onClick={saveSettings} disabled={saving}>
                 <Save className="h-4 w-4 mr-2" />
-                Salvar Configurações
+                Salvar
               </Button>
             </div>
           </motion.div>
@@ -383,42 +509,30 @@ const Configuracoes = () => {
             animate={{ opacity: 1, y: 0 }}
             className="rounded-xl border border-border bg-card p-6"
           >
-            <h3 className="font-semibold text-foreground mb-6">Preferências de Notificação</h3>
+            <h3 className="font-semibold text-foreground mb-6">Notificações</h3>
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-foreground">Notificações por Email</p>
-                  <p className="text-sm text-muted-foreground">
-                    Receba emails sobre novos agendamentos e cancelamentos
-                  </p>
+                  <p className="font-medium text-foreground">Email</p>
+                  <p className="text-sm text-muted-foreground">Receba emails sobre agendamentos</p>
                 </div>
                 <Switch
                   checked={settings.notification_email}
-                  onCheckedChange={(checked) =>
-                    setSettings({ ...settings, notification_email: checked })
-                  }
+                  onCheckedChange={(checked) => setSettings({ ...settings, notification_email: checked })}
                 />
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-foreground">Notificações por SMS</p>
-                  <p className="text-sm text-muted-foreground">
-                    Receba SMS sobre novos agendamentos (em breve)
-                  </p>
+                  <p className="font-medium text-foreground">SMS</p>
+                  <p className="text-sm text-muted-foreground">Em breve</p>
                 </div>
-                <Switch
-                  checked={settings.notification_sms}
-                  onCheckedChange={(checked) =>
-                    setSettings({ ...settings, notification_sms: checked })
-                  }
-                  disabled
-                />
+                <Switch checked={settings.notification_sms} disabled />
               </div>
             </div>
             <div className="mt-6 flex justify-end">
               <Button onClick={saveSettings} disabled={saving}>
                 <Save className="h-4 w-4 mr-2" />
-                Salvar Configurações
+                Salvar
               </Button>
             </div>
           </motion.div>
