@@ -105,7 +105,7 @@ const Dashboard = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 lg:mb-8">
         <StatsCard
           title="Agendamentos Hoje"
           value={stats.todayAppointments}
@@ -140,28 +140,72 @@ const Dashboard = () => {
         />
       </div>
 
+      {/* Quick Actions - Mobile: stacked, Desktop: in sidebar */}
+      <div className="lg:hidden mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="rounded-xl border border-border bg-card p-4 shadow-sm"
+        >
+          <h3 className="font-semibold text-foreground mb-3">Ações Rápidas</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {profile?.id && (
+              <>
+                <NewAppointmentDialog
+                  professionalId={profile.id}
+                  onSuccess={handleRefresh}
+                  trigger={
+                    <button className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
+                      + Novo Agendamento
+                    </button>
+                  }
+                />
+                <NewServiceDialog
+                  professionalId={profile.id}
+                  trigger={
+                    <button className="w-full rounded-lg border border-border px-4 py-3 text-sm font-medium text-foreground hover:bg-muted transition-colors">
+                      + Novo Serviço
+                    </button>
+                  }
+                />
+                <BlockTimeDialog
+                  professionalId={profile.id}
+                  onSuccess={handleRefresh}
+                  trigger={
+                    <button className="w-full rounded-lg border border-border px-4 py-3 text-sm font-medium text-foreground hover:bg-muted transition-colors">
+                      Bloquear Horário
+                    </button>
+                  }
+                />
+              </>
+            )}
+          </div>
+        </motion.div>
+      </div>
+
       {/* Main content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Calendar and appointments */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 lg:space-y-6">
           <AppointmentsList appointments={appointments} />
           <RevenueChart data={mockRevenueData} />
         </div>
 
         {/* Sidebar content */}
-        <div className="space-y-6">
+        <div className="space-y-4 lg:space-y-6">
           <MiniCalendar
             selectedDate={selectedDate}
             onDateSelect={setSelectedDate}
             appointmentDates={appointments.map(() => new Date())}
           />
 
-          {/* Quick actions */}
+          {/* Quick actions - Desktop only */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
-            className="rounded-xl border border-border bg-card p-4 shadow-sm"
+            className="hidden lg:block rounded-xl border border-border bg-card p-4 shadow-sm"
           >
             <h3 className="font-semibold text-foreground mb-4">Ações Rápidas</h3>
             <div className="space-y-2">

@@ -210,11 +210,11 @@ const Configuracoes = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-8">
+      <div className="mb-6 lg:mb-8">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-3xl font-bold text-foreground"
+          className="text-2xl sm:text-3xl font-bold text-foreground"
         >
           Configurações
         </motion.h1>
@@ -222,33 +222,33 @@ const Configuracoes = () => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-muted-foreground mt-1"
+          className="text-muted-foreground mt-1 text-sm sm:text-base"
         >
           Personalize sua conta e preferências
         </motion.p>
       </div>
 
-      <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
-          <TabsTrigger value="profile" className="gap-2">
+      <Tabs defaultValue="profile" className="space-y-4 sm:space-y-6">
+        <TabsList className="grid w-full grid-cols-5 h-auto p-1">
+          <TabsTrigger value="profile" className="gap-1 sm:gap-2 px-2 py-2 text-xs sm:text-sm">
             <User className="h-4 w-4" />
             <span className="hidden sm:inline">Perfil</span>
           </TabsTrigger>
-          <TabsTrigger value="business" className="gap-2">
+          <TabsTrigger value="business" className="gap-1 sm:gap-2 px-2 py-2 text-xs sm:text-sm">
             <Building className="h-4 w-4" />
             <span className="hidden sm:inline">Negócio</span>
           </TabsTrigger>
-          <TabsTrigger value="scheduling" className="gap-2">
+          <TabsTrigger value="scheduling" className="gap-1 sm:gap-2 px-2 py-2 text-xs sm:text-sm">
             <Shield className="h-4 w-4" />
-            <span className="hidden sm:inline">Agendamento</span>
+            <span className="hidden sm:inline">Agenda</span>
           </TabsTrigger>
-          <TabsTrigger value="public" className="gap-2">
+          <TabsTrigger value="public" className="gap-1 sm:gap-2 px-2 py-2 text-xs sm:text-sm">
             <Globe className="h-4 w-4" />
             <span className="hidden sm:inline">Página</span>
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="gap-2">
+          <TabsTrigger value="notifications" className="gap-1 sm:gap-2 px-2 py-2 text-xs sm:text-sm">
             <Bell className="h-4 w-4" />
-            <span className="hidden sm:inline">Notificações</span>
+            <span className="hidden sm:inline">Alertas</span>
           </TabsTrigger>
         </TabsList>
 

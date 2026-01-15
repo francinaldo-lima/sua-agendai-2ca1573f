@@ -138,11 +138,11 @@ const Clientes = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-8">
+      <div className="mb-6 lg:mb-8">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-3xl font-bold text-foreground"
+          className="text-2xl sm:text-3xl font-bold text-foreground"
         >
           Clientes
         </motion.h1>
@@ -150,14 +150,14 @@ const Clientes = () => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-muted-foreground mt-1"
+          className="text-muted-foreground mt-1 text-sm sm:text-base"
         >
           Gerencie sua base de clientes
         </motion.p>
       </div>
 
-      {/* Actions */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      {/* Search and Actions */}
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -170,6 +170,7 @@ const Clientes = () => {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button
+              className="hidden sm:flex"
               onClick={() => {
                 setEditingClient(null);
                 setFormData({ name: '', email: '', phone: '', notes: '' });
@@ -179,7 +180,7 @@ const Clientes = () => {
               Novo Cliente
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingClient ? 'Editar Cliente' : 'Novo Cliente'}
@@ -249,44 +250,45 @@ const Clientes = () => {
           </p>
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-3 sm:gap-4">
           {filteredClients.map((client, index) => (
             <motion.div
               key={client.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
+              transition={{ delay: index * 0.03 }}
               className="rounded-xl border border-border bg-card p-4 shadow-sm hover:shadow-md transition-shadow"
             >
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-lg">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                  <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-base sm:text-lg">
                     {client.name.charAt(0).toUpperCase()}
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-foreground truncate">
                       {client.name}
                     </h3>
-                    <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mt-1">
+                    <div className="flex flex-col sm:flex-row sm:flex-wrap gap-1 sm:gap-4 text-sm text-muted-foreground mt-1">
                       {client.email && (
-                        <span className="flex items-center gap-1">
-                          <Mail className="h-3 w-3" />
-                          {client.email}
+                        <span className="flex items-center gap-1 truncate">
+                          <Mail className="h-3 w-3 shrink-0" />
+                          <span className="truncate">{client.email}</span>
                         </span>
                       )}
                       {client.phone && (
                         <span className="flex items-center gap-1">
-                          <Phone className="h-3 w-3" />
+                          <Phone className="h-3 w-3 shrink-0" />
                           {client.phone}
                         </span>
                       )}
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-1 shrink-0">
                   <Button
                     variant="ghost"
                     size="icon"
+                    className="h-8 w-8"
                     onClick={() => handleEdit(client)}
                   >
                     <Edit className="h-4 w-4" />
@@ -294,6 +296,7 @@ const Clientes = () => {
                   <Button
                     variant="ghost"
                     size="icon"
+                    className="h-8 w-8"
                     onClick={() => handleDelete(client.id)}
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
@@ -301,7 +304,7 @@ const Clientes = () => {
                 </div>
               </div>
               {client.notes && (
-                <p className="mt-3 text-sm text-muted-foreground border-t border-border pt-3">
+                <p className="mt-3 text-sm text-muted-foreground border-t border-border pt-3 line-clamp-2">
                   {client.notes}
                 </p>
               )}
@@ -309,6 +312,22 @@ const Clientes = () => {
           ))}
         </div>
       )}
+
+      {/* Floating Action Button - Mobile */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger asChild>
+          <Button
+            className="sm:hidden fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50"
+            size="icon"
+            onClick={() => {
+              setEditingClient(null);
+              setFormData({ name: '', email: '', phone: '', notes: '' });
+            }}
+          >
+            <Plus className="h-6 w-6" />
+          </Button>
+        </DialogTrigger>
+      </Dialog>
     </DashboardLayout>
   );
 };

@@ -129,12 +129,12 @@ const Relatorios = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="mb-6 lg:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <motion.h1
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold text-foreground"
+            className="text-2xl sm:text-3xl font-bold text-foreground"
           >
             Relatórios
           </motion.h1>
@@ -142,14 +142,14 @@ const Relatorios = () => {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-muted-foreground mt-1"
+            className="text-muted-foreground mt-1 text-sm sm:text-base"
           >
             {periodLabel}
           </motion.p>
         </div>
 
         <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-full sm:w-48">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -167,7 +167,7 @@ const Relatorios = () => {
       ) : (
         <>
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 lg:mb-8">
             <StatsCard
               title="Total de Agendamentos"
               value={data.totalAppointments}

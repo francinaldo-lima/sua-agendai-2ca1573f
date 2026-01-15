@@ -226,12 +226,13 @@ const Agenda = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Header with navigation */}
+      <div className="mb-4 sm:mb-6 flex flex-col gap-4">
         <div>
           <motion.h1
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold text-foreground"
+            className="text-2xl sm:text-3xl font-bold text-foreground"
           >
             Agenda
           </motion.h1>
@@ -239,40 +240,46 @@ const Agenda = () => {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-muted-foreground mt-1"
+            className="text-muted-foreground mt-1 text-sm sm:text-base"
           >
             Gerencie seus agendamentos
           </motion.p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setCurrentDate(addDays(currentDate, -7))}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm font-medium min-w-[200px] text-center">
-            {format(weekDays[0], "d 'de' MMM", { locale: ptBR })} -{' '}
-            {format(weekDays[6], "d 'de' MMM 'de' yyyy", { locale: ptBR })}
-          </span>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setCurrentDate(addDays(currentDate, 7))}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+        {/* Week Navigation */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center justify-center sm:justify-start gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-9"
+              onClick={() => setCurrentDate(addDays(currentDate, -7))}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-xs sm:text-sm font-medium min-w-[180px] sm:min-w-[200px] text-center">
+              {format(weekDays[0], "d 'de' MMM", { locale: ptBR })} -{' '}
+              {format(weekDays[6], "d 'de' MMM", { locale: ptBR })}
+            </span>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-9"
+              onClick={() => setCurrentDate(addDays(currentDate, 7))}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
 
+          {/* Desktop button */}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="ml-4">
+              <Button className="hidden sm:flex">
                 <Plus className="h-4 w-4 mr-2" />
                 Novo Agendamento
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Novo Agendamento</DialogTitle>
               </DialogHeader>
@@ -423,99 +430,215 @@ const Agenda = () => {
           Carregando...
         </div>
       ) : (
-        <div className="grid grid-cols-7 gap-4">
-          {weekDays.map((day, index) => {
-            const dayAppointments = getAppointmentsForDay(day);
-            const isToday = isSameDay(day, new Date());
+        <>
+          {/* Mobile: List View */}
+          <div className="lg:hidden space-y-4">
+            {weekDays.map((day, index) => {
+              const dayAppointments = getAppointmentsForDay(day);
+              const isToday = isSameDay(day, new Date());
 
-            return (
-              <motion.div
-                key={day.toISOString()}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className={`min-h-[400px] rounded-xl border p-3 ${
-                  isToday ? 'border-primary bg-primary/5' : 'border-border bg-card'
-                }`}
-              >
-                <div className="text-center mb-3">
-                  <p className="text-xs text-muted-foreground uppercase">
-                    {format(day, 'EEE', { locale: ptBR })}
-                  </p>
-                  <p
-                    className={`text-lg font-semibold ${
-                      isToday ? 'text-primary' : 'text-foreground'
-                    }`}
-                  >
-                    {format(day, 'd')}
-                  </p>
-                </div>
+              return (
+                <motion.div
+                  key={day.toISOString()}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.03 }}
+                  className={`rounded-xl border p-4 ${
+                    isToday ? 'border-primary bg-primary/5' : 'border-border bg-card'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-lg font-semibold ${isToday ? 'text-primary' : 'text-foreground'}`}>
+                        {format(day, 'd')}
+                      </span>
+                      <span className="text-sm text-muted-foreground capitalize">
+                        {format(day, 'EEEE', { locale: ptBR })}
+                      </span>
+                    </div>
+                    {dayAppointments.length > 0 && (
+                      <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                        {dayAppointments.length} agendamento{dayAppointments.length > 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </div>
 
-                <div className="space-y-2">
                   {dayAppointments.length === 0 ? (
-                    <p className="text-xs text-muted-foreground text-center py-4">
-                      Sem agendamentos
-                    </p>
+                    <p className="text-sm text-muted-foreground">Sem agendamentos</p>
                   ) : (
-                    dayAppointments.map((appointment) => {
-                      const status = STATUS_CONFIG[appointment.status] || STATUS_CONFIG.scheduled;
-                      return (
-                        <div
-                          key={appointment.id}
-                          className={`p-2 rounded-lg ${status.bg} border`}
-                        >
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
-                            <Clock className="h-3 w-3" />
-                            {appointment.start_time?.slice(0, 5)} - {appointment.end_time?.slice(0, 5)}
-                          </div>
-                          <p className="text-sm font-medium text-foreground truncate">
-                            {appointment.client?.name || appointment.client_name}
-                          </p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {appointment.service?.name}
-                          </p>
-                          <div className="flex gap-1 mt-2">
-                            {appointment.status === 'scheduled' && (
-                              <>
+                    <div className="space-y-2">
+                      {dayAppointments.map((appointment) => {
+                        const status = STATUS_CONFIG[appointment.status] || STATUS_CONFIG.scheduled;
+                        return (
+                          <div
+                            key={appointment.id}
+                            className={`p-3 rounded-lg ${status.bg} border`}
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Clock className="h-3.5 w-3.5" />
+                                {appointment.start_time?.slice(0, 5)} - {appointment.end_time?.slice(0, 5)}
+                              </div>
+                              <span className={`text-xs font-medium ${status.color}`}>
+                                {status.label}
+                              </span>
+                            </div>
+                            <p className="font-medium text-foreground">
+                              {appointment.client?.name || appointment.client_name}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {appointment.service?.name}
+                            </p>
+                            <div className="flex gap-2 mt-2">
+                              {appointment.status === 'scheduled' && (
+                                <>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-7 text-xs flex-1"
+                                    onClick={() => updateStatus(appointment.id, 'confirmed')}
+                                  >
+                                    <Check className="h-3 w-3 mr-1" />
+                                    Confirmar
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-7 text-xs"
+                                    onClick={() => updateStatus(appointment.id, 'canceled')}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </>
+                              )}
+                              {appointment.status === 'confirmed' && (
                                 <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6"
-                                  onClick={() => updateStatus(appointment.id, 'confirmed')}
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 text-xs"
+                                  onClick={() => updateStatus(appointment.id, 'completed')}
                                 >
-                                  <Check className="h-3 w-3 text-green-600" />
+                                  Concluir
                                 </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6"
-                                  onClick={() => updateStatus(appointment.id, 'canceled')}
-                                >
-                                  <X className="h-3 w-3 text-red-600" />
-                                </Button>
-                              </>
-                            )}
-                            {appointment.status === 'confirmed' && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 text-xs"
-                                onClick={() => updateStatus(appointment.id, 'completed')}
-                              >
-                                Concluir
-                              </Button>
-                            )}
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })
+                        );
+                      })}
+                    </div>
                   )}
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Desktop: Week Grid View */}
+          <div className="hidden lg:grid grid-cols-7 gap-4">
+            {weekDays.map((day, index) => {
+              const dayAppointments = getAppointmentsForDay(day);
+              const isToday = isSameDay(day, new Date());
+
+              return (
+                <motion.div
+                  key={day.toISOString()}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className={`min-h-[400px] rounded-xl border p-3 ${
+                    isToday ? 'border-primary bg-primary/5' : 'border-border bg-card'
+                  }`}
+                >
+                  <div className="text-center mb-3">
+                    <p className="text-xs text-muted-foreground uppercase">
+                      {format(day, 'EEE', { locale: ptBR })}
+                    </p>
+                    <p
+                      className={`text-lg font-semibold ${
+                        isToday ? 'text-primary' : 'text-foreground'
+                      }`}
+                    >
+                      {format(day, 'd')}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    {dayAppointments.length === 0 ? (
+                      <p className="text-xs text-muted-foreground text-center py-4">
+                        Sem agendamentos
+                      </p>
+                    ) : (
+                      dayAppointments.map((appointment) => {
+                        const status = STATUS_CONFIG[appointment.status] || STATUS_CONFIG.scheduled;
+                        return (
+                          <div
+                            key={appointment.id}
+                            className={`p-2 rounded-lg ${status.bg} border`}
+                          >
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+                              <Clock className="h-3 w-3" />
+                              {appointment.start_time?.slice(0, 5)} - {appointment.end_time?.slice(0, 5)}
+                            </div>
+                            <p className="text-sm font-medium text-foreground truncate">
+                              {appointment.client?.name || appointment.client_name}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {appointment.service?.name}
+                            </p>
+                            <div className="flex gap-1 mt-2">
+                              {appointment.status === 'scheduled' && (
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6"
+                                    onClick={() => updateStatus(appointment.id, 'confirmed')}
+                                  >
+                                    <Check className="h-3 w-3 text-green-600" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6"
+                                    onClick={() => updateStatus(appointment.id, 'canceled')}
+                                  >
+                                    <X className="h-3 w-3 text-red-600" />
+                                  </Button>
+                                </>
+                              )}
+                              {appointment.status === 'confirmed' && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 text-xs"
+                                  onClick={() => updateStatus(appointment.id, 'completed')}
+                                >
+                                  Concluir
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </>
       )}
+
+      {/* Floating Action Button - Mobile only */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger asChild>
+          <Button
+            className="sm:hidden fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50"
+            size="icon"
+          >
+            <Plus className="h-6 w-6" />
+          </Button>
+        </DialogTrigger>
+      </Dialog>
     </DashboardLayout>
   );
 };

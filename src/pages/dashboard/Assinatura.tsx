@@ -190,11 +190,11 @@ const Assinatura = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-8">
+      <div className="mb-6 lg:mb-8">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-3xl font-bold text-foreground"
+          className="text-2xl sm:text-3xl font-bold text-foreground"
         >
           Assinatura
         </motion.h1>
@@ -202,7 +202,7 @@ const Assinatura = () => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-muted-foreground mt-1"
+          className="text-muted-foreground mt-1 text-sm sm:text-base"
         >
           Gerencie seu plano e veja seu uso
         </motion.p>
@@ -282,8 +282,8 @@ const Assinatura = () => {
           )}
 
           {/* Available Plans */}
-          <h3 className="text-xl font-semibold text-foreground mb-4">Planos Disponíveis</h3>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-4">Planos Disponíveis</h3>
+          <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {plans.map((plan, index) => {
               const Icon = PLAN_ICONS[plan.name] || Crown;
               const isCurrent = plan.id === currentPlanId;
