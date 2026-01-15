@@ -105,11 +105,11 @@ const Horarios = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-8">
+      <div className="mb-6 lg:mb-8">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-3xl font-bold text-foreground"
+          className="text-2xl sm:text-3xl font-bold text-foreground"
         >
           Horários de Atendimento
         </motion.h1>
@@ -117,7 +117,7 @@ const Horarios = () => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-muted-foreground mt-1"
+          className="text-muted-foreground mt-1 text-sm sm:text-base"
         >
           Configure seus horários disponíveis para agendamento
         </motion.p>
@@ -128,7 +128,7 @@ const Horarios = () => {
           Carregando...
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {DAYS_OF_WEEK.map((day, index) => {
             const hours = getHoursForDay(day.value);
             const hasHours = hours.length > 0;
@@ -150,15 +150,16 @@ const Horarios = () => {
                           : 'bg-muted-foreground/30'
                       }`}
                     />
-                    <h3 className="font-semibold text-foreground">{day.label}</h3>
+                    <h3 className="font-semibold text-foreground text-sm sm:text-base">{day.label}</h3>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
+                    className="h-8 text-xs sm:text-sm"
                     onClick={() => addWorkingHour(day.value)}
                   >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Adicionar
+                    <Plus className="h-4 w-4 sm:mr-1" />
+                    <span className="hidden sm:inline">Adicionar</span>
                   </Button>
                 </div>
 
@@ -171,29 +172,31 @@ const Horarios = () => {
                     {hours.map((wh) => (
                       <div
                         key={wh.id}
-                        className="flex items-center gap-4 p-3 rounded-lg bg-muted/50"
+                        className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 rounded-lg bg-muted/50"
                       >
                         <div className="flex items-center gap-2 flex-1">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <Input
-                            type="time"
-                            value={wh.start_time.slice(0, 5)}
-                            onChange={(e) =>
-                              updateWorkingHour(wh.id, 'start_time', e.target.value)
-                            }
-                            className="w-28"
-                          />
-                          <span className="text-muted-foreground">até</span>
-                          <Input
-                            type="time"
-                            value={wh.end_time.slice(0, 5)}
-                            onChange={(e) =>
-                              updateWorkingHour(wh.id, 'end_time', e.target.value)
-                            }
-                            className="w-28"
-                          />
+                          <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <div className="flex items-center gap-2 flex-1">
+                            <Input
+                              type="time"
+                              value={wh.start_time.slice(0, 5)}
+                              onChange={(e) =>
+                                updateWorkingHour(wh.id, 'start_time', e.target.value)
+                              }
+                              className="w-24 sm:w-28 h-9"
+                            />
+                            <span className="text-muted-foreground text-sm">até</span>
+                            <Input
+                              type="time"
+                              value={wh.end_time.slice(0, 5)}
+                              onChange={(e) =>
+                                updateWorkingHour(wh.id, 'end_time', e.target.value)
+                              }
+                              className="w-24 sm:w-28 h-9"
+                            />
+                          </div>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center justify-between sm:justify-end gap-4">
                           <div className="flex items-center gap-2">
                             <Label htmlFor={`active-${wh.id}`} className="text-sm">
                               Ativo
@@ -209,6 +212,7 @@ const Horarios = () => {
                           <Button
                             variant="ghost"
                             size="icon"
+                            className="h-8 w-8"
                             onClick={() => deleteWorkingHour(wh.id)}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
@@ -229,14 +233,15 @@ const Horarios = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="mt-8 rounded-xl border border-border bg-card p-6 shadow-sm"
+        className="mt-6 lg:mt-8 rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm"
       >
-        <h3 className="font-semibold text-foreground mb-4">Configuração Rápida</h3>
+        <h3 className="font-semibold text-foreground mb-3 sm:mb-4">Configuração Rápida</h3>
         <p className="text-sm text-muted-foreground mb-4">
           Configure horários padrão para todos os dias úteis de uma vez.
         </p>
         <Button
           variant="outline"
+          className="w-full sm:w-auto"
           onClick={async () => {
             if (!profile?.id) return;
             

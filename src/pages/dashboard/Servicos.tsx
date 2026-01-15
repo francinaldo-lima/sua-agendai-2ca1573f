@@ -148,11 +148,11 @@ const Servicos = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-8">
+      <div className="mb-6 lg:mb-8">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-3xl font-bold text-foreground"
+          className="text-2xl sm:text-3xl font-bold text-foreground"
         >
           Serviços
         </motion.h1>
@@ -160,14 +160,14 @@ const Servicos = () => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-muted-foreground mt-1"
+          className="text-muted-foreground mt-1 text-sm sm:text-base"
         >
           Gerencie os serviços que você oferece
         </motion.p>
       </div>
 
-      {/* Actions */}
-      <div className="flex justify-end mb-6">
+      {/* Actions - Desktop */}
+      <div className="hidden sm:flex justify-end mb-6">
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button
@@ -180,7 +180,7 @@ const Servicos = () => {
               Novo Serviço
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingService ? 'Editar Serviço' : 'Novo Serviço'}
@@ -267,28 +267,29 @@ const Servicos = () => {
           <p className="text-muted-foreground">Nenhum serviço cadastrado</p>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {services.map((service, index) => (
             <motion.div
               key={service.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              className={`rounded-xl border bg-card p-5 shadow-sm hover:shadow-md transition-shadow ${
+              className={`rounded-xl border bg-card p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow ${
                 !service.is_active ? 'opacity-60 border-dashed' : 'border-border'
               }`}
             >
               <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h3 className="font-semibold text-foreground">{service.name}</h3>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-foreground truncate">{service.name}</h3>
                   {!service.is_active && (
                     <span className="text-xs text-muted-foreground">(Inativo)</span>
                   )}
                 </div>
-                <div className="flex gap-1">
+                <div className="flex gap-1 ml-2">
                   <Button
                     variant="ghost"
                     size="icon"
+                    className="h-8 w-8"
                     onClick={() => handleEdit(service)}
                   >
                     <Edit className="h-4 w-4" />
@@ -296,6 +297,7 @@ const Servicos = () => {
                   <Button
                     variant="ghost"
                     size="icon"
+                    className="h-8 w-8"
                     onClick={() => handleDelete(service.id)}
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
@@ -333,6 +335,22 @@ const Servicos = () => {
           ))}
         </div>
       )}
+
+      {/* Floating Action Button - Mobile */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger asChild>
+          <Button
+            className="sm:hidden fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50"
+            size="icon"
+            onClick={() => {
+              setEditingService(null);
+              setFormData({ name: '', description: '', duration: 30, price: 0, is_active: true });
+            }}
+          >
+            <Plus className="h-6 w-6" />
+          </Button>
+        </DialogTrigger>
+      </Dialog>
     </DashboardLayout>
   );
 };
