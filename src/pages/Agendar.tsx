@@ -32,6 +32,50 @@ interface BusinessProfile {
   website: string | null;
 }
 
+interface Settings {
+  public_page_theme: string | null;
+}
+
+// Theme color configurations
+const themeColors: Record<string, { primary: string; primaryForeground: string; accent: string; gradient: string }> = {
+  default: {
+    primary: 'bg-blue-500',
+    primaryForeground: 'text-white',
+    accent: 'bg-blue-50 text-blue-600 border-blue-200',
+    gradient: 'from-blue-500/10 via-background to-background',
+  },
+  black: {
+    primary: 'bg-gray-900',
+    primaryForeground: 'text-white',
+    accent: 'bg-gray-100 text-gray-800 border-gray-300',
+    gradient: 'from-gray-900/10 via-background to-background',
+  },
+  gold: {
+    primary: 'bg-amber-500',
+    primaryForeground: 'text-white',
+    accent: 'bg-amber-50 text-amber-600 border-amber-200',
+    gradient: 'from-amber-500/10 via-background to-background',
+  },
+  pink: {
+    primary: 'bg-pink-500',
+    primaryForeground: 'text-white',
+    accent: 'bg-pink-50 text-pink-600 border-pink-200',
+    gradient: 'from-pink-500/10 via-background to-background',
+  },
+  brown: {
+    primary: 'bg-amber-800',
+    primaryForeground: 'text-white',
+    accent: 'bg-amber-50 text-amber-800 border-amber-300',
+    gradient: 'from-amber-800/10 via-background to-background',
+  },
+  red: {
+    primary: 'bg-red-500',
+    primaryForeground: 'text-white',
+    accent: 'bg-red-50 text-red-600 border-red-200',
+    gradient: 'from-red-500/10 via-background to-background',
+  },
+};
+
 interface Service {
   id: string;
   name: string;
@@ -71,6 +115,7 @@ export default function Agendar() {
   const [currentStep, setCurrentStep] = useState<Step>("service");
   const [professional, setProfessional] = useState<Professional | null>(null);
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
+  const [settings, setSettings] = useState<Settings | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [workingHours, setWorkingHours] = useState<WorkingHour[]>([]);
   const [existingAppointments, setExistingAppointments] = useState<Appointment[]>([]);
@@ -84,6 +129,9 @@ export default function Agendar() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
+  
+  // Get theme colors
+  const theme = themeColors[settings?.public_page_theme || 'default'] || themeColors.default;
   const [clientPhone, setClientPhone] = useState("");
   const [notes, setNotes] = useState("");
 
@@ -102,12 +150,18 @@ export default function Agendar() {
 
   const fetchProfessionalData = async () => {
     try {
-      const [profResult, servicesResult, hoursResult, businessResult] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("id, full_name, company_name, avatar_url")
-          .eq("id", professionalId)
-          .single(),
+      // First get the profile to get the user_id
+      const profResult = await supabase
+        .from("profiles")
+        .select("id, full_name, company_name, avatar_url, user_id")
+        .eq("id", professionalId)
+        .single();
+
+      if (profResult.error) throw profResult.error;
+      
+      const userId = profResult.data.user_id;
+
+      const [servicesResult, hoursResult, businessResult, settingsResult] = await Promise.all([
         supabase
           .from("services")
           .select("*")
@@ -124,9 +178,13 @@ export default function Agendar() {
           .select("*")
           .eq("professional_id", professionalId)
           .maybeSingle(),
+        supabase
+          .from("settings")
+          .select("public_page_theme")
+          .eq("user_id", userId)
+          .maybeSingle(),
       ]);
 
-      if (profResult.error) throw profResult.error;
       if (servicesResult.error) throw servicesResult.error;
       if (hoursResult.error) throw hoursResult.error;
 
@@ -134,6 +192,7 @@ export default function Agendar() {
       setServices(servicesResult.data || []);
       setWorkingHours(hoursResult.data || []);
       setBusinessProfile(businessResult.data);
+      setSettings(settingsResult.data);
     } catch (error) {
       console.error("Error fetching data:", error);
       toast({
@@ -352,16 +411,16 @@ export default function Agendar() {
   const displayLogo = businessProfile?.logo_url || professional.avatar_url;
 
   return (
-    <div className="min-h-screen bg-gradient-hero">
+    <div className={`min-h-screen bg-gradient-to-b ${theme.gradient}`}>
       {/* Header with business info */}
       <header className="bg-card/80 backdrop-blur-sm border-b border-border">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+            <div className={`w-16 h-16 md:w-20 md:h-20 rounded-full ${theme.primary}/10 flex items-center justify-center overflow-hidden flex-shrink-0`}>
               {displayLogo ? (
                 <img src={displayLogo} alt={displayName || ""} className="w-full h-full object-cover" />
               ) : (
-                <Building className="w-8 h-8 text-primary" />
+                <Building className={`w-8 h-8 ${theme.primary.replace('bg-', 'text-')}`} />
               )}
             </div>
             <div className="flex-1">
@@ -369,7 +428,7 @@ export default function Agendar() {
               {businessProfile?.description && (
                 <p className="text-muted-foreground mt-1 line-clamp-2">{businessProfile.description}</p>
               )}
-              <p className="text-sm text-primary mt-2">Agendamento online</p>
+              <p className={`text-sm mt-2 ${theme.primary.replace('bg-', 'text-')}`}>Agendamento online</p>
             </div>
           </div>
         </div>
@@ -466,10 +525,8 @@ export default function Agendar() {
                 <div key={step.key} className="flex items-center">
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-                      index < currentStepIndex
-                        ? "bg-primary text-primary-foreground"
-                        : index === currentStepIndex
-                        ? "bg-primary text-primary-foreground"
+                      index <= currentStepIndex
+                        ? `${theme.primary} ${theme.primaryForeground}`
                         : "bg-muted text-muted-foreground"
                     }`}
                   >
@@ -478,7 +535,7 @@ export default function Agendar() {
                   {index < steps.length - 1 && (
                     <div
                       className={`w-8 md:w-12 h-1 mx-1 rounded ${
-                        index < currentStepIndex ? "bg-primary" : "bg-muted"
+                        index < currentStepIndex ? theme.primary : "bg-muted"
                       }`}
                     />
                   )}
@@ -514,7 +571,7 @@ export default function Agendar() {
                             key={service.id}
                             className={`cursor-pointer transition-all hover:shadow-card-hover ${
                               selectedService?.id === service.id
-                                ? "ring-2 ring-primary border-primary"
+                                ? `ring-2 ${theme.accent} border-current`
                                 : ""
                             }`}
                             onClick={() => setSelectedService(service)}
@@ -533,7 +590,7 @@ export default function Agendar() {
                                 </div>
                               </div>
                               <div className="text-right">
-                                <span className="text-lg font-semibold text-primary">
+                                <span className={`text-lg font-semibold ${theme.primary.replace('bg-', 'text-')}`}>
                                   R$ {service.price.toFixed(2)}
                                 </span>
                               </div>
@@ -710,7 +767,7 @@ export default function Agendar() {
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Valor</span>
-                            <span className="font-medium text-primary">
+                            <span className={`font-medium ${theme.primary.replace('bg-', 'text-')}`}>
                               R$ {selectedService?.price.toFixed(2)}
                             </span>
                           </div>
@@ -745,7 +802,7 @@ export default function Agendar() {
                   <Button
                     onClick={handleSubmit}
                     disabled={!canProceed() || submitting}
-                    className="gap-2"
+                    className={`gap-2 ${theme.primary} ${theme.primaryForeground} hover:opacity-90`}
                   >
                     {submitting ? "Agendando..." : "Confirmar Agendamento"}
                     <Check className="w-4 h-4" />
@@ -754,7 +811,7 @@ export default function Agendar() {
                   <Button
                     onClick={nextStep}
                     disabled={!canProceed()}
-                    className="gap-2"
+                    className={`gap-2 ${theme.primary} ${theme.primaryForeground} hover:opacity-90`}
                   >
                     Próximo
                     <ArrowRight className="w-4 h-4" />
