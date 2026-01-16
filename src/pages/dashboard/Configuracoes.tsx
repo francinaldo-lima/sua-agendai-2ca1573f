@@ -484,6 +484,37 @@ const Configuracoes = () => {
                   rows={3}
                 />
               </div>
+              
+              {/* Theme Color Selector */}
+              <div>
+                <Label>Tema de Cores</Label>
+                <p className="text-sm text-muted-foreground mb-3">Escolha a cor principal da sua página pública</p>
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                  {[
+                    { value: 'default', label: 'Azul', color: 'bg-blue-500' },
+                    { value: 'black', label: 'Preto', color: 'bg-gray-900' },
+                    { value: 'gold', label: 'Dourado', color: 'bg-amber-500' },
+                    { value: 'pink', label: 'Rosa', color: 'bg-pink-500' },
+                    { value: 'brown', label: 'Marrom', color: 'bg-amber-800' },
+                    { value: 'red', label: 'Vermelho', color: 'bg-red-500' },
+                  ].map((theme) => (
+                    <button
+                      key={theme.value}
+                      type="button"
+                      onClick={() => setSettings({ ...settings, public_page_theme: theme.value })}
+                      className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all ${
+                        settings.public_page_theme === theme.value
+                          ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <div className={`w-8 h-8 rounded-full ${theme.color} shadow-md`} />
+                      <span className="text-xs font-medium text-foreground">{theme.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {profile?.id && (
                 <div className="p-4 rounded-lg bg-muted">
                   <p className="text-sm text-muted-foreground mb-2">Link da sua página:</p>
