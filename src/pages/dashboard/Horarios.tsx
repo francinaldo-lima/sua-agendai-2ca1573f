@@ -78,7 +78,7 @@ const Horarios = () => {
   const updateWorkingHour = async (id: string, field: string, value: string | boolean) => {
     const { error } = await supabase
       .from('working_hours')
-      .update({ [field]: value })
+      .update({ [field]: value } as any)
       .eq('id', id);
 
     if (error) {
