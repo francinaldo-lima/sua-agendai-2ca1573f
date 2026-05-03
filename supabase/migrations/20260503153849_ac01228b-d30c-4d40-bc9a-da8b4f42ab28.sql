@@ -1,0 +1,2 @@
+UPDATE public.plans SET max_appointments = 30, features = '["Até 30 agendamentos/mês","1 profissional","Página pública"]'::jsonb WHERE name = 'Gratuito';
+UPDATE public.plans SET is_active = false WHERE name = 'Empresarial';
